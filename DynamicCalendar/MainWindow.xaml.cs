@@ -50,27 +50,47 @@ namespace DynamicCalendar
             string url_appointment_get = "https://" + "progenda.be/api/v2/calendars/" + calendar_ID + "/appointments?user_email=" + email + "&user_token=" + token;
             string test = wc.DownloadString(url_appointment_get);
             RootObject appointments = JsonConvert.DeserializeObject<RootObject>(test);
-            appointments.appointments = appointments.appointments.OrderBy(a => a.appointment.start).ToList();
+            appointments.appointments = appointments.appointments.Where(a => !a.appointment.status.Equals("cancelled")).
+                OrderBy(a => a.appointment.start).ToList();
 
             for (int i = 0; i < appointments.appointments.Count() - 1; i++)
             {
                 Appointment app = appointments.appointments[i];
                 Appointment app2 = appointments.appointments[i + 1];
 
-                if (app.appointment.stop > app2.appointment.start && !app.appointment.status.Equals("cancelled")
-                    && !app2.appointment.status.Equals("cancelled"))
+                if (app.appointment.stop > app2.appointment.start && !(app.appointment.color == "#FFEB3B" 
+                    && app2.appointment.color == "#FFEB3B"))
                 {
-                    //Push 2nd appointment to a later time
-                    int difference = app2.appointment.stop - app2.appointment.start;
-                    app2.appointment.start = app.appointment.stop;
-                    app2.appointment.stop = app2.appointment.start + difference;
+                    if (app2.appointment.color == "#FFEB3B") {
+                        int dif = app.appointment.stop - app.appointment.start;
+                        app.appointment.start = app2.appointment.stop;
+                        app.appointment.stop = app.appointment.start + dif;
 
-                    //PUT appointment if affected
-                    wc.Headers.Add("Content-Type", "application/json");
-                    string body = "{\"appointment\":{\"start\":\"" + app2.appointment.start + "\", \"stop\":\"" + app2.appointment.stop + "\"}}";
-                    byte[] postArray = Encoding.ASCII.GetBytes(body);
-                    string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/" + app2.appointment.id + "?user_email=" + email + "&user_token=" + token;
-                    byte[] responseArray = wc.UploadData(url, "PUT", postArray);
+                        //PUT appointment if affected
+                        wc.Headers.Add("Content-Type", "application/json");
+                        string body = "{\"appointment\":{\"start\":\"" + app.appointment.start + "\", \"stop\":\"" + app.appointment.stop + "\"}}";
+                        byte[] postArray = Encoding.ASCII.GetBytes(body);
+                        string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/" + app.appointment.id + "?user_email=" + email + "&user_token=" + token;
+                        byte[] responseArray = wc.UploadData(url, "PUT", postArray);
+                        appointments.appointments.Remove(app2);
+                        i--;
+                    }
+                    else {
+                        int difference = app2.appointment.stop - app2.appointment.start;
+                        app2.appointment.start = app.appointment.stop;
+                        app2.appointment.stop = app2.appointment.start + difference;
+
+                        //PUT appointment if affected
+                        wc.Headers.Add("Content-Type", "application/json");
+                        string body = "{\"appointment\":{\"start\":\"" + app2.appointment.start + "\", \"stop\":\"" + app2.appointment.stop + "\"}}";
+                        byte[] postArray = Encoding.ASCII.GetBytes(body);
+                        string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/" + app2.appointment.id + "?user_email=" + email + "&user_token=" + token;
+                        byte[] responseArray = wc.UploadData(url, "PUT", postArray);
+                    }
+                    //Push 2nd appointment to a later time
+                    
+
+                    
                 }
             }
         }
