@@ -22,15 +22,12 @@ using Google.Apis.Util.Store;
 using System.IO;
 using System.Threading;
 
-namespace DynamicCalendar
-{
+namespace DynamicCalendar {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
+    public partial class MainWindow : Window {
+        public MainWindow() {
             InitializeComponent();
         }
 
@@ -42,8 +39,7 @@ namespace DynamicCalendar
         private int center_ID;
         private WebClient wc = new WebClient();
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
+        private void Button_Click(object sender, RoutedEventArgs e) {
             email = TextBoxEmail.Text;
             token = TextBoxToken.Text;
             calendar_ID = Convert.ToInt32(TextBoxCalendar.Text);
@@ -54,13 +50,11 @@ namespace DynamicCalendar
             cancelLateAppointments();
         }
 
-        public void GoogleCalendar()
-        {
+        public void GoogleCalendar() {
             UserCredential credential;
 
             using (var stream =
-                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
-            {
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read)) {
                 // The file token.json stores the user's access and refresh tokens, and is created
                 // automatically when the authorization flow completes for the first time.
                 string credPath = "token.json";
@@ -74,8 +68,7 @@ namespace DynamicCalendar
             }
 
             // Create Google Calendar API service.
-            var service = new CalendarService(new BaseClientService.Initializer()
-            {
+            var service = new CalendarService(new BaseClientService.Initializer() {
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
             });
@@ -97,15 +90,12 @@ namespace DynamicCalendar
 
             Events events = request.Execute();
             Console.WriteLine("Upcoming events:");
-            if (events.Items != null && events.Items.Count > 0)
-            {
-                foreach (var eventItem in events.Items)
-                {
+            if (events.Items != null && events.Items.Count > 0) {
+                foreach (var eventItem in events.Items) {
                     string when = eventItem.Start.DateTime.ToString();
                     string end = eventItem.End.DateTime.ToString();
                     string id = eventItem.Id;
-                    if (String.IsNullOrEmpty(when))
-                    {
+                    if (String.IsNullOrEmpty(when)) {
                         when = eventItem.Start.Date;
                         end = eventItem.End.Date;
                     }
@@ -120,30 +110,30 @@ namespace DynamicCalendar
                     a.color = "#FFEB3B";
                     a.status = "booked";
 
-                    try
-                    {
+                    try {
                         WebClient wc = new WebClient();
                         wc.Headers.Add("Content-Type", "application/json");
                         string body = "{\"appointment\":{\"start\":\"" + a.start + "\", \"stop\":\"" + a.stop + "\", \"remote_id\":\"" + a.remote_id + "\", \"notes\":\"" + a.notes + "\", \"title\":\"" + a.title + "\", \"color\":\"" + a.color + "\"}}";
                         byte[] postArray = Encoding.ASCII.GetBytes(body);
                         string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments?user_email=" + email + "&user_token=" + token;
                         byte[] responseArray = wc.UploadData(url, "POST", postArray);
-                    }
-                    catch (Exception)
-                    {
-                        WebClient w = new WebClient();
-                        w.Headers.Add("Content-Type", "application/json");
-                        string body = "{\"appointment\":{\"start\":\"" + a.start + "\", \"stop\":\"" + a.stop + "\", \"remote_id\":\"" + a.remote_id + "\", \"notes\":\"" + a.notes + "\", \"title\":\"" + a.title + "\", \"color\":\"" + a.color + "\", \"status\":\"" + a.status + "\"}}";
-                        byte[] postArray = Encoding.ASCII.GetBytes(body);
-                        string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/remote_id:" + a.remote_id + "?user_email=" + email + "&user_token=" + token;
-                        byte[] responseArray = w.UploadData(url, "PUT", postArray);
+                    } catch (Exception) {
+                        try {
+                            WebClient w = new WebClient();
+                            w.Headers.Add("Content-Type", "application/json");
+                            string body = "{\"appointment\":{\"start\":\"" + a.start + "\", \"stop\":\"" + a.stop + "\", \"remote_id\":\"" + a.remote_id + "\", \"notes\":\"" + a.notes + "\", \"title\":\"" + a.title + "\", \"color\":\"" + a.color + "\", \"status\":\"" + a.status + "\"}}";
+                            byte[] postArray = Encoding.ASCII.GetBytes(body);
+                            string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/remote_id:" + a.remote_id + "?user_email=" + email + "&user_token=" + token;
+                            byte[] responseArray = w.UploadData(url, "PUT", postArray);
+                        } catch (Exception) {
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        public void AppointmentShifter()
-        {
+        public void AppointmentShifter() {
             //GET all appointments
             string url_appointment_get = "https://" + "progenda.be/api/v2/calendars/" + calendar_ID + "/appointments?user_email=" + email + "&user_token=" + token;
             string test = wc.DownloadString(url_appointment_get);
@@ -151,14 +141,12 @@ namespace DynamicCalendar
             appointments.appointments = appointments.appointments.Where(a => !a.appointment.status.Equals("cancelled")).
                 OrderBy(a => a.appointment.start).ToList();
 
-            for (int i = 0; i < appointments.appointments.Count() - 1; i++)
-            {
+            for (int i = 0; i < appointments.appointments.Count() - 1; i++) {
                 Appointment app = appointments.appointments[i];
                 Appointment app2 = appointments.appointments[i + 1];
 
-                if (app.appointment.stop > app2.appointment.start && !(app.appointment.color == "#FFEB3B" 
-                    && app2.appointment.color == "#FFEB3B"))
-                {
+                if (app.appointment.stop > app2.appointment.start && !(app.appointment.color == "#FFEB3B"
+                    && app2.appointment.color == "#FFEB3B")) {
                     if (app2.appointment.color == "#FFEB3B") {
                         int dif = app.appointment.stop - app.appointment.start;
                         app.appointment.start = app2.appointment.stop;
@@ -172,8 +160,7 @@ namespace DynamicCalendar
                         byte[] responseArray = wc.UploadData(url, "PUT", postArray);
                         appointments.appointments.Remove(app2);
                         i--;
-                    }
-                    else {
+                    } else {
                         int difference = app2.appointment.stop - app2.appointment.start;
                         app2.appointment.start = app.appointment.stop;
                         app2.appointment.stop = app2.appointment.start + difference;
@@ -186,9 +173,9 @@ namespace DynamicCalendar
                         byte[] responseArray = wc.UploadData(url, "PUT", postArray);
                     }
                     //Push 2nd appointment to a later time
-                    
 
-                    
+
+
                 }
             }
         }
@@ -216,20 +203,21 @@ namespace DynamicCalendar
                 int hour = time.Hour;
                 int minute = time.Minute;
                 if (time.TimeOfDay > end.TimeOfDay) {
-                    try {
-                        Appointment2 appointment = app.appointment;
-                        #region put remote_id appointment
-                        wc.Headers.Add("Content-Type", "application/json");
-                        byte[] postArray = Encoding.ASCII.GetBytes("{\"appointment\":{\"remote_id\":\"" + appointment.id + "\"}}");
-                        byte[] responseArray = wc.UploadData(new Uri("https://progenda.be/api/v2/calendars/" + calendar_ID +
-                            "/appointments/" + appointment.id.ToString() + "?user_email=" + email + "&user_token=" + token), "PUT", postArray);
-                        #endregion
+                    getAndDeleteAppointment(app.appointment.id);
+                    //try {
+                    //    Appointment2 appointment = app.appointment;
+                    //    #region put remote_id appointment
+                    //    wc.Headers.Add("Content-Type", "application/json");
+                    //    byte[] postArray = Encoding.ASCII.GetBytes("{\"appointment\":{\"remote_id\":\"" + appointment.id + "\"}}");
+                    //    byte[] responseArray = wc.UploadData(new Uri("https://progenda.be/api/v2/calendars/" + calendar_ID +
+                    //        "/appointments/" + appointment.id.ToString() + "?user_email=" + email + "&user_token=" + token), "PUT", postArray);
+                    //    #endregion
 
-                        getAndDeleteAppointment(appointment.id);
-                    } catch (Exception ex) {
-                        Appointment2 appointment = app.appointment;
-                        getAndDeleteAppointment(appointment.id);
-                    }
+                    //    getAndDeleteAppointment(appointment.id);
+                    //} catch (Exception ex) {
+                    //    Appointment2 appointment = app.appointment;
+                    //    getAndDeleteAppointment(appointment.id);
+                    //}
                 }
             }
 
@@ -238,25 +226,26 @@ namespace DynamicCalendar
         public void getAndDeleteAppointment(int id) {
             #region get appointment
             string appstring = wc.DownloadString("https://progenda.be/api/v2/calendars/" + calendar_ID +
-                "/appointments/remote_id:" + id + "?user_email=" + email + "&user_token=" + token);
+                "/appointments/" + id + "?user_email=" + email + "&user_token=" + token);
             Appointment app2 = JsonConvert.DeserializeObject<Appointment>(appstring);
             Appointment2 appointment2 = app2.appointment;
             #endregion
 
             #region delete appointment
             WebRequest request = WebRequest.Create("https://progenda.be/api/v2/calendars/" + calendar_ID +
-                                "/appointments/remote_id:" + appointment2.remote_id + "?user_email=" + email + "&user_token=" + token);
+                                "/appointments/" + id + "?user_email=" + email + "&user_token=" + token);
             request.Method = "DELETE";
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            if (appointment2.patient_id != null)
+                PatientInformation.MakeFile(app2, center_ID, email, token, calendar_ID);
             #endregion
         }
 
         public static DateTime FromUnixTime(long unixTime) {
-            return new DateTime(1970,1,1).AddSeconds(unixTime);
+            return new DateTime(1970, 1, 1).AddSeconds(unixTime);
         }
 
-        public static long ToUnixTime(DateTime date = new DateTime())
-        {
+        public static long ToUnixTime(DateTime date = new DateTime()) {
             return (Int32)(date.Subtract(new DateTime(1970, 1, 1, 1, 0, 0))).TotalSeconds;
         }
     }
