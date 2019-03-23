@@ -112,7 +112,7 @@ namespace DynamicCalendar
                     Console.WriteLine("{0}", id);
                     Console.WriteLine("{0} (startdate: {1} enddate: {2})", eventItem.Summary, when, end);
                     Appointment2 a = new Appointment2();
-                    a.remote_id = id + 1;
+                    a.remote_id = id;
                     a.start = (Int32)ToUnixTime((DateTime)eventItem.Start.DateTime);
                     a.stop = (Int32)ToUnixTime((DateTime)eventItem.End.DateTime);
                     a.notes = "true";
