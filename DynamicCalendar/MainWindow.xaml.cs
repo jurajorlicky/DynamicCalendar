@@ -97,7 +97,7 @@ namespace DynamicCalendar
         private void cancelLateAppointments() {
             string api = "https://progenda.be/api/v2";
 
-            DateTime end = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 25, 16, 0, 0);
+            DateTime end = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 24, 16, 0, 0);
 
             string urlData = String.Empty;
             urlData = wc.DownloadString(api + "/centers?user_email=" + email + "&user_token=" + token);
@@ -110,14 +110,14 @@ namespace DynamicCalendar
 
             RootObject appointments = (RootObject)JsonConvert.DeserializeObject<RootObject>(test);
             List<Appointment> appointments2 = appointments.appointments
-                .Where(app => FromUnixTime(app.appointment.start).Day.Equals(end.Day)).ToList();
+                .Where(app => FromUnixTime(app.appointment.start).Day.Equals(end.Day) && !app.appointment.status.Equals("cancelled"))
+                .ToList();
             for (int i = 0; i < appointments2.Count(); i++) {
-                Appointment app = appointments.appointments[i];
+                Appointment app = appointments2[i];
                 DateTime time = FromUnixTime(app.appointment.stop).AddHours(1);
                 int hour = time.Hour;
                 int minute = time.Minute;
-                bool cancelled = app.appointment.status.Equals("cancelled");
-                if (hour >= end.Hour && !cancelled) {
+                if (time.CompareTo(end) > 0) {
                     try {
                         Appointment2 appointment = app.appointment;
                         #region put remote_id appointment
