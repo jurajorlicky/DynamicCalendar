@@ -208,14 +208,14 @@ namespace DynamicCalendar
 
             RootObject appointments = (RootObject)JsonConvert.DeserializeObject<RootObject>(test);
             List<Appointment> appointments2 = appointments.appointments
-                .Where(app => FromUnixTime(app.appointment.start).Day.Equals(end.Day) && !app.appointment.status.Equals("cancelled"))
+                .Where(app => app.appointment.status.Equals("booked"))
                 .ToList();
             for (int i = 0; i < appointments2.Count(); i++) {
                 Appointment app = appointments2[i];
                 DateTime time = FromUnixTime(app.appointment.stop).AddHours(1);
                 int hour = time.Hour;
                 int minute = time.Minute;
-                if (time.CompareTo(end) > 0) {
+                if (time.TimeOfDay > end.TimeOfDay) {
                     try {
                         Appointment2 appointment = app.appointment;
                         #region put remote_id appointment
