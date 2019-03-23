@@ -14,6 +14,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using System.IO;
+using System.Threading;
 
 namespace DynamicCalendar
 {
@@ -27,6 +34,8 @@ namespace DynamicCalendar
             InitializeComponent();
         }
 
+        static string[] Scopes = { CalendarService.Scope.Calendar };
+        static string ApplicationName = "Google Calendar API .NET Quickstart";
         private string email;
         private string token;
         private int calendar_ID;
@@ -40,8 +49,97 @@ namespace DynamicCalendar
             calendar_ID = Convert.ToInt32(TextBoxCalendar.Text);
             center_ID = Convert.ToInt32(TextBoxCenter.Text);
 
+            GoogleCalendar();
             AppointmentShifter();
             cancelLateAppointments();
+        }
+
+        public void GoogleCalendar()
+        {
+            UserCredential credential;
+
+            using (var stream =
+                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+            {
+                // The file token.json stores the user's access and refresh tokens, and is created
+                // automatically when the authorization flow completes for the first time.
+                string credPath = "token.json";
+                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    Scopes,
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true)).Result;
+                Console.WriteLine("Credential file saved to: " + credPath);
+            }
+
+            // Create Google Calendar API service.
+            var service = new CalendarService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName,
+            });
+
+            // Define parameters of request.
+            EventsResource.ListRequest request = service.Events.List("primary");
+            request.TimeMin = DateTime.Now;
+            request.ShowDeleted = false;
+            request.SingleEvents = true;
+            request.MaxResults = 10;
+            request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+
+            // List events.
+
+            string email = "test2@gmail.com";
+            string token = "aLYj5i2DnGcqYSrW4OvdBrdbClI7j/hKpXeZyl0dzLw=";
+            int calendar_ID = 6599;
+
+
+            Events events = request.Execute();
+            Console.WriteLine("Upcoming events:");
+            if (events.Items != null && events.Items.Count > 0)
+            {
+                foreach (var eventItem in events.Items)
+                {
+                    string when = eventItem.Start.DateTime.ToString();
+                    string end = eventItem.End.DateTime.ToString();
+                    string id = eventItem.Id;
+                    if (String.IsNullOrEmpty(when))
+                    {
+                        when = eventItem.Start.Date;
+                        end = eventItem.End.Date;
+                    }
+                    Console.WriteLine("{0}", id);
+                    Console.WriteLine("{0} (startdate: {1} enddate: {2})", eventItem.Summary, when, end);
+                    Appointment2 a = new Appointment2();
+                    a.remote_id = id + 1;
+                    a.start = (Int32)ToUnixTime((DateTime)eventItem.Start.DateTime);
+                    a.stop = (Int32)ToUnixTime((DateTime)eventItem.End.DateTime);
+                    a.notes = "true";
+                    a.title = eventItem.Summary;
+                    a.color = "#FFEB3B";
+                    a.status = "booked";
+
+                    try
+                    {
+                        WebClient wc = new WebClient();
+                        wc.Headers.Add("Content-Type", "application/json");
+                        string body = "{\"appointment\":{\"start\":\"" + a.start + "\", \"stop\":\"" + a.stop + "\", \"remote_id\":\"" + a.remote_id + "\", \"notes\":\"" + a.notes + "\", \"title\":\"" + a.title + "\", \"color\":\"" + a.color + "\"}}";
+                        byte[] postArray = Encoding.ASCII.GetBytes(body);
+                        string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments?user_email=" + email + "&user_token=" + token;
+                        byte[] responseArray = wc.UploadData(url, "POST", postArray);
+                    }
+                    catch (Exception)
+                    {
+                        WebClient w = new WebClient();
+                        w.Headers.Add("Content-Type", "application/json");
+                        string body = "{\"appointment\":{\"start\":\"" + a.start + "\", \"stop\":\"" + a.stop + "\", \"remote_id\":\"" + a.remote_id + "\", \"notes\":\"" + a.notes + "\", \"title\":\"" + a.title + "\", \"color\":\"" + a.color + "\", \"status\":\"" + a.status + "\"}}";
+                        byte[] postArray = Encoding.ASCII.GetBytes(body);
+                        string url = "https://progenda.be/api/v2/calendars/" + calendar_ID + "/appointments/remote_id:" + a.remote_id + "?user_email=" + email + "&user_token=" + token;
+                        byte[] responseArray = w.UploadData(url, "PUT", postArray);
+                    }
+                }
+            }
         }
 
         public void AppointmentShifter()
@@ -157,8 +255,9 @@ namespace DynamicCalendar
             return new DateTime(1970,1,1).AddSeconds(unixTime);
         }
 
-        public static long ToUnixTime(DateTime date) {
-            return (Int32)(date.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        public static long ToUnixTime(DateTime date = new DateTime())
+        {
+            return (Int32)(date.Subtract(new DateTime(1970, 1, 1, 1, 0, 0))).TotalSeconds;
         }
     }
 }
