@@ -208,7 +208,7 @@ namespace DynamicCalendar
 
             RootObject appointments = (RootObject)JsonConvert.DeserializeObject<RootObject>(test);
             List<Appointment> appointments2 = appointments.appointments
-                .Where(app => app.appointment.status.Equals("booked"))
+                .Where(app => app.appointment.status.Equals("booked") && app.appointment.color != "#FFEB3B")
                 .ToList();
             for (int i = 0; i < appointments2.Count(); i++) {
                 Appointment app = appointments2[i];
