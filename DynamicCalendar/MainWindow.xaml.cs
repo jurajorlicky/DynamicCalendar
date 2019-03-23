@@ -57,7 +57,8 @@ namespace DynamicCalendar
                 Appointment app = appointments.appointments[i];
                 Appointment app2 = appointments.appointments[i + 1];
 
-                if (app.appointment.stop > app2.appointment.start)
+                if (app.appointment.stop > app2.appointment.start && !app.appointment.status.Equals("cancelled")
+                    && !app2.appointment.status.Equals("cancelled"))
                 {
                     //Push 2nd appointment to a later time
                     int difference = app2.appointment.stop - app2.appointment.start;
@@ -99,7 +100,6 @@ namespace DynamicCalendar
                 if (hour >= end.Hour && !cancelled) {
                     try {
                         Appointment2 appointment = app.appointment;
-
                         #region put remote_id appointment
                         wc.Headers.Add("Content-Type", "application/json");
                         byte[] postArray = Encoding.ASCII.GetBytes("{\"appointment\":{\"remote_id\":\"" + appointment.id + "\"}}");
@@ -108,19 +108,6 @@ namespace DynamicCalendar
                         #endregion
 
                         getAndDeleteAppointment(appointment.id);
-                        //#region get appointment
-                        //string appstring = wc.DownloadString("https://progenda.be/api/v2/calendars/" + calendar_ID +
-                        //    "/appointments/remote_id:" + appointment.id + "?user_email=" + email + "&user_token=" + token);
-                        //Appointment app2 = JsonConvert.DeserializeObject<Appointment>(appstring);
-                        //Appointment2 appointment2 = app2.appointment;
-                        //#endregion
-
-                        //#region delete appointment
-                        //WebRequest request = WebRequest.Create("https://progenda.be/api/v2/calendars/" + calendar_ID +
-                        //                    "/appointments/remote_id:" + appointment2.remote_id + "?user_email=" + email + "&user_token=" + token);
-                        //request.Method = "DELETE";
-                        //HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                        //#endregion
                     } catch (Exception ex) {
                         Appointment2 appointment = app.appointment;
                         getAndDeleteAppointment(appointment.id);

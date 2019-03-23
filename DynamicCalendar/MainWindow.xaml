@@ -8,10 +8,10 @@
         Title="DynamicCalendar" Height="450" Width="800">
     <Grid>
         <Button Content="Button" HorizontalAlignment="Left" Margin="311,239,0,0" VerticalAlignment="Top" Width="149" Click="Button_Click" Height="79"/>
-        <TextBox Name="TextBoxEmail" HorizontalAlignment="Left" Height="23" Margin="280,62,0,0" TextWrapping="Wrap" Text="test3@gmail.com" VerticalAlignment="Top" Width="298"/>
-        <TextBox x:Name="TextBoxToken" HorizontalAlignment="Left" Height="23" Margin="280,90,0,0" TextWrapping="Wrap" Text="FwBtkBnRfFMcnH2GfFcAhkzwI0su5bp4FvhMrRssZdY=" VerticalAlignment="Top" Width="298"/>
-        <TextBox x:Name="TextBoxCenter" HorizontalAlignment="Left" Height="23" Margin="280,142,0,0" TextWrapping="Wrap" Text="4625" VerticalAlignment="Top" Width="298"/>
-        <TextBox x:Name="TextBoxCalendar" HorizontalAlignment="Left" Height="23" Margin="280,116,0,0" TextWrapping="Wrap" Text="6600" VerticalAlignment="Top" Width="298"/>
+        <TextBox Name="TextBoxEmail" HorizontalAlignment="Left" Height="23" Margin="280,62,0,0" TextWrapping="Wrap" Text="test2@gmail.com" VerticalAlignment="Top" Width="298"/>
+        <TextBox x:Name="TextBoxToken" HorizontalAlignment="Left" Height="23" Margin="280,90,0,0" TextWrapping="Wrap" Text="aLYj5i2DnGcqYSrW4OvdBrdbClI7j/hKpXeZyl0dzLw=" VerticalAlignment="Top" Width="298"/>
+        <TextBox x:Name="TextBoxCenter" HorizontalAlignment="Left" Height="23" Margin="280,142,0,0" TextWrapping="Wrap" Text="4624" VerticalAlignment="Top" Width="298"/>
+        <TextBox x:Name="TextBoxCalendar" HorizontalAlignment="Left" Height="23" Margin="280,116,0,0" TextWrapping="Wrap" Text="6599" VerticalAlignment="Top" Width="298"/>
         <Label Content="Email:" HorizontalAlignment="Left" Margin="175,58,0,0" VerticalAlignment="Top"/>
         <Label Content="Token:" HorizontalAlignment="Left" Margin="175,86,0,0" VerticalAlignment="Top"/>
         <Label Content="Center Id:" HorizontalAlignment="Left" Margin="175,138,0,0" VerticalAlignment="Top"/>

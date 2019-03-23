@@ -10,7 +10,7 @@ namespace DynamicCalendar
     {
         public int id { get; set; }
         public object remote_id { get; set; }
-        public int patient_id { get; set; }
+        public int? patient_id { get; set; }
         public string color { get; set; }
         public string title { get; set; }
         public string status { get; set; }
